@@ -38,6 +38,11 @@ const getCacheIdentifier = require('react-dev-utils/getCacheIdentifier');
 // @remove-on-eject-end
 const postcssNormalize = require('postcss-normalize');
 
+const SpritePlugin = require('svg-sprite-loader/plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+  .BundleAnalyzerPlugin;
+const version = process.env.REACT_APP_VERSION;
+
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
 // Some apps do not need the benefits of saving a web request, so not inlining the chunk
@@ -46,6 +51,8 @@ const shouldInlineRuntimeChunk = process.env.INLINE_RUNTIME_CHUNK !== 'false';
 
 // Check if TypeScript is setup
 const useTypeScript = fs.existsSync(paths.appTsConfig);
+
+const shouldRunAnalyzer = process.env.NO_ANALYZER !== 'true';
 
 // style files regexes
 const cssRegex = /\.css$/;
@@ -165,13 +172,13 @@ module.exports = function(webpackEnv) {
       // There will be one main bundle, and one file per asynchronous chunk.
       // In development, it does not produce real files.
       filename: isEnvProduction
-        ? 'static/js/[name].[contenthash:8].js'
+        ? 'app/app.' + version + '.js'
         : isEnvDevelopment && 'static/js/bundle.js',
       // TODO: remove this when upgrading to webpack 5
       futureEmitAssets: true,
       // There are also additional JS chunk files if you use code splitting.
       chunkFilename: isEnvProduction
-        ? 'static/js/[name].[contenthash:8].chunk.js'
+        ? 'app/[name].[chunkhash:8].js'
         : isEnvDevelopment && 'static/js/[name].chunk.js',
       // We inferred the "public path" (such as / or /my-project) from homepage.
       // We use "/" in development.
@@ -254,12 +261,16 @@ module.exports = function(webpackEnv) {
       // https://twitter.com/wSokra/status/969633336732905474
       // https://medium.com/webpack/webpack-4-code-splitting-chunk-graph-and-the-splitchunks-optimization-be739a861366
       splitChunks: {
-        chunks: 'all',
-        name: false,
+        //chunks: 'all',
+        //name: false,
+        cacheGroups: {
+          default: false,
+          vendors: false,
+        },
       },
       // Keep the runtime chunk separated to enable long term caching
       // https://twitter.com/wSokra/status/969679223278505985
-      runtimeChunk: true,
+      runtimeChunk: false,
     },
     resolve: {
       // This allows you to set a fallback for where Webpack should look for modules.
@@ -355,12 +366,12 @@ module.exports = function(webpackEnv) {
               loader: require.resolve('babel-loader'),
               options: {
                 customize: require.resolve(
-                  'babel-preset-react-app/webpack-overrides'
+                  '@eglaost/babel-preset-react-app/webpack-overrides'
                 ),
                 // @remove-on-eject-begin
                 babelrc: false,
                 configFile: false,
-                presets: [require.resolve('babel-preset-react-app')],
+                presets: [require.resolve('@eglaost/babel-preset-react-app')],
                 // Make sure we have a unique cache identifier, erring on the
                 // side of caution.
                 // We remove this when the user ejects because the default
@@ -372,24 +383,24 @@ module.exports = function(webpackEnv) {
                     : isEnvDevelopment && 'development',
                   [
                     'babel-plugin-named-asset-import',
-                    'babel-preset-react-app',
+                    '@eglaost/babel-preset-react-app',
                     'react-dev-utils',
                     'react-scripts',
                   ]
                 ),
                 // @remove-on-eject-end
-                plugins: [
-                  [
-                    require.resolve('babel-plugin-named-asset-import'),
-                    {
-                      loaderMap: {
-                        svg: {
-                          ReactComponent: '@svgr/webpack?-svgo,+ref![path]',
-                        },
-                      },
-                    },
-                  ],
-                ],
+                // plugins: [
+                //   [
+                //     require.resolve('babel-plugin-named-asset-import'),
+                //     {
+                //       loaderMap: {
+                //         svg: {
+                //           ReactComponent: '@svgr/webpack?-svgo,+ref![path]',
+                //         },
+                //       },
+                //     },
+                //   ],
+                // ],
                 // This is a feature of `babel-loader` for webpack (not Babel itself).
                 // It enables caching results in ./node_modules/.cache/babel-loader/
                 // directory for faster rebuilds.
@@ -410,7 +421,9 @@ module.exports = function(webpackEnv) {
                 compact: false,
                 presets: [
                   [
-                    require.resolve('babel-preset-react-app/dependencies'),
+                    require.resolve(
+                      '@eglaost/babel-preset-react-app/dependencies'
+                    ),
                     { helpers: true },
                   ],
                 ],
@@ -423,7 +436,7 @@ module.exports = function(webpackEnv) {
                     : isEnvDevelopment && 'development',
                   [
                     'babel-plugin-named-asset-import',
-                    'babel-preset-react-app',
+                    '@eglaost/babel-preset-react-app',
                     'react-dev-utils',
                     'react-scripts',
                   ]
@@ -500,6 +513,19 @@ module.exports = function(webpackEnv) {
                 'sass-loader'
               ),
             },
+            {
+              test: /\.svg$/,
+              use: {
+                loader: 'svg-sprite-loader',
+                options: {
+                  extract: true,
+                  spriteFilename: isEnvProduction
+                    ? 'app/sprite.[hash:8].svg'
+                    : 'app/sprite.svg',
+                  symbolId: 'sprite-[name]',
+                },
+              },
+            },
             // "file" loader makes sure those assets get served by WebpackDevServer.
             // When you `import` an asset, you get its (virtual) filename.
             // In production, they would get copied to the `build` folder.
@@ -523,6 +549,10 @@ module.exports = function(webpackEnv) {
       ],
     },
     plugins: [
+      new SpritePlugin({
+        plainSprite: isEnvProduction,
+      }),
+      isEnvProduction && shouldRunAnalyzer && new BundleAnalyzerPlugin(),
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(
         Object.assign(
@@ -586,8 +616,10 @@ module.exports = function(webpackEnv) {
         new MiniCssExtractPlugin({
           // Options similar to the same options in webpackOptions.output
           // both options are optional
-          filename: 'static/css/[name].[contenthash:8].css',
-          chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
+          //filename: 'static/css/[name].[contenthash:8].css',
+          //chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
+          filename: 'css/app.' + version + '.css',
+          chunkFilename: 'css/[name].[contenthash:8].css',
         }),
       // Generate a manifest file which contains a mapping of all asset filenames
       // to their corresponding output file so that tools can pick it up without

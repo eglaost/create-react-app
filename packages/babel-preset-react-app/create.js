@@ -102,6 +102,14 @@ module.exports = function(api, opts, env) {
         },
       ],
       isTypeScriptEnabled && [require('@babel/preset-typescript').default],
+      [
+        require('@emotion/babel-preset-css-prop'),
+        {
+          sourceMap: isEnvProduction ? false : true,
+          autoLabel: isEnvProduction ? false : true,
+          labelFormat: '[filename]--[local]',
+        },
+      ],
     ].filter(Boolean),
     plugins: [
       // Strip flow types before any other transform, emulating the behavior
