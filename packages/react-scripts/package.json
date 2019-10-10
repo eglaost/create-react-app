@@ -1,6 +1,6 @@
 {
   "name": "@eglaost/react-script",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Configuration and scripts for Create React App.",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   "types": "./lib/react-app.d.ts",
   "dependencies": {
     "@babel/core": "7.4.3",
-    "@eglaost/babel-preset-react-app": "9.0.1",
+    "@eglaost/babel-preset-react-app": "9.0.2",
     "@emotion/core": "10.0.10",
     "@emotion/styled": "^10.0.11",
     "@svgr/webpack": "4.1.0",
