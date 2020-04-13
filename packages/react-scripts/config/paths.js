@@ -120,8 +120,9 @@ if (
     appBuild: resolveOwn('../../build'),
     appPublic: resolveOwn(`${templatePath}/public`),
     appHtml: resolveOwn(
-      `${templatePath}/${process.env.REACT_APP_HTML_PAGE}` ||
-        `${templatePath}/public/index.html`
+      process.env.REACT_APP_HTML_PAGE
+        ? `${templatePath}/${process.env.REACT_APP_HTML_PAGE}`
+        : `${templatePath}/public/index.html`
     ),
     appIndexJs: resolveModule(resolveOwn, `${templatePath}/src/index`),
     appPackageJson: resolveOwn('package.json'),
