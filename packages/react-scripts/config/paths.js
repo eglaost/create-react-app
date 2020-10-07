@@ -66,6 +66,9 @@ module.exports = {
   appIndexJs: resolveModule(resolveApp, 'src/index'),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
+  externalBuildPath: resolveApp(
+    `../${process.env.REACT_APP_EXTERNAL_BUILD_PATH}`
+  ),
   appTsConfig: resolveApp('tsconfig.json'),
   appJsConfig: resolveApp('jsconfig.json'),
   yarnLockFile: resolveApp('yarn.lock'),
@@ -88,6 +91,9 @@ module.exports = {
   appIndexJs: resolveModule(resolveApp, 'src/index'),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
+  externalBuildPath: resolveApp(
+    `../${process.env.REACT_APP_EXTERNAL_BUILD_PATH}`
+  ),
   appTsConfig: resolveApp('tsconfig.json'),
   appJsConfig: resolveApp('jsconfig.json'),
   yarnLockFile: resolveApp('yarn.lock'),
@@ -127,6 +133,7 @@ if (
     appIndexJs: resolveModule(resolveOwn, `${templatePath}/src/index`),
     appPackageJson: resolveOwn('package.json'),
     appSrc: resolveOwn(`${templatePath}/src`),
+    externalBuildPath: resolveOwn(`${templatePath}/src`), // used in monorepos, not in template project
     appTsConfig: resolveOwn(`${templatePath}/tsconfig.json`),
     appJsConfig: resolveOwn(`${templatePath}/jsconfig.json`),
     yarnLockFile: resolveOwn(`${templatePath}/yarn.lock`),
