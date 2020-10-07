@@ -1,6 +1,6 @@
 {
   "name": "@eglaost/react-script",
-  "version": "3.4.101",
+  "version": "3.4.102-rc1",
   "description": "Configuration and scripts for Create React App.",
   "repository": {
     "type": "git",
